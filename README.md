@@ -1,3 +1,4 @@
+![Tests](https://github.com/RyMaDe/Py-Calendar-API/actions/workflows/ci.yaml/badge.svg)
 # Python Calendar API
 An api for a calendar that can create, read, update and delete calendar entries.
 
