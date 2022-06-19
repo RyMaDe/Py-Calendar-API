@@ -1,5 +1,6 @@
 from django.urls import reverse
 from rest_framework.test import APITestCase
+from rest_framework.test import APIClient
 from PyCalendar.PyCal_API.views import CalendarListAPIView
 from PyCalendar.PyCal_API.views import CalendarDetailApiView
 from django.contrib.auth.models import User
@@ -23,7 +24,7 @@ class APIListTest(APITestCase):
     def test_Entry_Made(self):
         # Testing that posting a new calendar item works.
         data = {
-            "Name": "Flight to Paris",
+            "Name": "Flight to Rome",
             "Description": "Board terminal 3",
             "Date": "2022-05-29",
             "Time": "11:37:00",
