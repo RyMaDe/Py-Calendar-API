@@ -16,7 +16,7 @@ jobs:
 
     services:
       postgres_db:
-        image: postgres: 12
+        image: postgres:12
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
