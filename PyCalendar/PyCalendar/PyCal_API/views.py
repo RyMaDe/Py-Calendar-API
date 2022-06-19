@@ -34,6 +34,7 @@ class CalendarListAPIView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class CalendarDetailApiView(APIView):
     def get_object(self, calendar_id):
         '''
