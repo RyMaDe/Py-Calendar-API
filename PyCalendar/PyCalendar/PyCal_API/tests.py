@@ -1,10 +1,11 @@
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework.test import APIClient
+from rest_framework import status
 from PyCalendar.PyCal_API.views import CalendarListAPIView
 from PyCalendar.PyCal_API.views import CalendarDetailApiView
+from PyCalendar.PyCal_API.models import Calendar_API
 from django.contrib.auth.models import User
-from rest_framework import status
 
 
 class APIListTest(APITestCase):
@@ -94,8 +95,7 @@ class APIListTest(APITestCase):
 
 
 class APIDetailTest(APITestCase):
-    calender_items_url = reverse('calendar')
-    calendar_item_url = reverse('calendar-item', args = [1])
+    calendar_items_url = reverse('calendar')  # URL for all items
 
     def setUp(self):
         # Creating an initial entry to be tested.
@@ -106,13 +106,13 @@ class APIDetailTest(APITestCase):
             "Time": "11:37:00",
             "Tag": "",
             }
-        self.client.post(self.calender_items_url, data, format='json')
+        self.client.post(self.calendar_items_url, data, format='json')
 
     def test_Get(self):
         # Testing that getting an item by id returns the correct data.
-        response = self.client.get(self.calendar_item_url)
+        response = self.client.get(self.calendar_items_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["Name"], "Flight to Paris")
+        self.assertEqual(response.data[0]["Name"], "Flight to Paris")
 
     def test_Update_Item(self):
         # Testing that changing the data works correctly.
@@ -123,6 +123,11 @@ class APIDetailTest(APITestCase):
             "Time": "11:37:00",
             "Tag": "Work",
         }
+
+        # Getting the first id in the db and accessing the url for it.
+        pk = Calendar_API.objects.first().id
+        self.calendar_item_url = reverse('calendar-item', args = [pk])
+
         response = self.client.put(self.calendar_item_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Checking that changed fields are changed correctly:
@@ -130,8 +135,14 @@ class APIDetailTest(APITestCase):
         self.assertEqual(response.data["Tag"], "Work")
         # Checking that unchanged fields remained unchanged:
         self.assertEqual(response.data["Name"], "Flight to Paris")
+        self.assertEqual(response.data["Date"], "2022-05-29")
+        self.assertEqual(response.data["Time"], "11:37:00")
 
     def test_Delete_Item(self):
+        # Getting the first id in the db and accessing the url for it.
+        pk = Calendar_API.objects.first().id
+        self.calendar_item_url = reverse('calendar-item', args = [pk])
+
         # Testing that deleting an item removes it fully.
         response = self.client.delete(self.calendar_item_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
