@@ -2,8 +2,14 @@ from functools import partial
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import BasePermission
 from .models import Calendar_API
 from .serializers import Calendar_API_Serializer
+
+
+class UserWritePermission(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj.Author == request.user
 
 
 class CalendarListAPIView(APIView):
@@ -11,7 +17,8 @@ class CalendarListAPIView(APIView):
         '''
         List all on going calendar items
         '''
-        items = Calendar_API.objects
+        user = self.request.user
+        items = Calendar_API.objects.filter(Author=user)
         serializer = Calendar_API_Serializer(items, many=True)
 
         return Response(serializer.data, status = status.HTTP_200_OK)
@@ -25,7 +32,8 @@ class CalendarListAPIView(APIView):
             'Description': request.data.get('Description'),
             'Date': request.data.get('Date'),
             'Time': request.data.get('Time'),
-            'Tag': request.data.get('Tag')
+            'Tag': request.data.get('Tag'),
+            'Author': self.request.user.id, #request.data.get('Author'),
         }
         serializer = Calendar_API_Serializer(data = data)
         if serializer.is_valid():
@@ -35,13 +43,17 @@ class CalendarListAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CalendarDetailApiView(APIView):
+class CalendarDetailApiView(APIView, UserWritePermission):
+    permission_classes = [UserWritePermission]
+
     def get_object(self, calendar_id):
         '''
         Helper method to get the obj
         '''
         try:
-            return Calendar_API.objects.get(id=calendar_id)
+            items = Calendar_API.objects.get(id=calendar_id)
+            self.check_object_permissions(self.request, items)
+            return items
         except Calendar_API.DoesNotExist:
             return None
 

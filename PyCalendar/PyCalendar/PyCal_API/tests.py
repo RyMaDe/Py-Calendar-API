@@ -2,16 +2,18 @@ from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework.test import APIClient
 from rest_framework import status
-from PyCalendar.PyCal_API.views import CalendarListAPIView
-from PyCalendar.PyCal_API.views import CalendarDetailApiView
 from PyCalendar.PyCal_API.models import Calendar_API
 from django.contrib.auth.models import User
 
 
 class APIListTest(APITestCase):
-    calender_items_url = reverse('calendar')
+    calendar_items_url = reverse('calendar')
 
     def setUp(self):
+        # Create an initial user to be used, not a superuser.
+        self.testuser1 = User.objects.create_user(username="test_user1", password="password")
+        self.client.login(username="test_user1", password="password")
+
         # Creating an initial entry to be tested.
         data = {
             "Name": "Flight to Paris",
@@ -20,7 +22,7 @@ class APIListTest(APITestCase):
             "Time": "11:37:00",
             "Tag": "",
             }
-        self.client.post(self.calender_items_url, data, format='json')
+        self.client.post(self.calendar_items_url, data, format='json')
 
     def test_Entry_Made(self):
         # Testing that posting a new calendar item works.
@@ -31,7 +33,7 @@ class APIListTest(APITestCase):
             "Time": "11:37:00",
             "Tag": "",
             }
-        response = self.client.post(self.calender_items_url, data, format='json')
+        response = self.client.post(self.calendar_items_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
     
     def test_Bad_Entry_Data_Name1(self):
@@ -44,7 +46,7 @@ class APIListTest(APITestCase):
             "Time": "11:37:00",
             "Tag": "",
             }
-        response = self.client.post(self.calender_items_url, data, format='json')
+        response = self.client.post(self.calendar_items_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_Bad_Entry_Data_Name2(self):
@@ -57,7 +59,7 @@ class APIListTest(APITestCase):
             "Time": "11:37:00",
             "Tag": "",
             }
-        response = self.client.post(self.calender_items_url, data, format='json')
+        response = self.client.post(self.calendar_items_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_Bad_Entry_Data_Date(self):
@@ -70,7 +72,7 @@ class APIListTest(APITestCase):
             "Time": "11:37:00",
             "Tag": "",
             }
-        response = self.client.post(self.calender_items_url, data, format='json')
+        response = self.client.post(self.calendar_items_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_Bad_Entry_Data_Tag(self):
@@ -83,21 +85,59 @@ class APIListTest(APITestCase):
             "Time": "11:37:00",
             "Tag": "Hello",
             }
-        response = self.client.post(self.calender_items_url, data, format='json')
+        response = self.client.post(self.calendar_items_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_Get_All(self):
         # Testing that all on-going calendar items are returned.
-        response = self.client.get(self.calender_items_url)
+        response = self.client.get(self.calendar_items_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]["Name"], "Flight to Paris")
+
+    def test_Get_All_Permission(self):
+        # Creating a second user, posting a calendar entry and making sure only
+        # their entry is shown and not the first user's.
+        self.testuser2 = User.objects.create_user(username="test_user2", password="password")
+        self.client.login(username="test_user2", password="password")
+
+        data = {
+            "Name": "Flight to Rome",
+            "Description": "Don't forget passport",
+            "Date": "2022-07-05",
+            "Time": "13:47:00",
+            "Tag": "",
+            }
+        self.client.post(self.calendar_items_url, data, format='json')
+
+        response = self.client.get(self.calendar_items_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        Author_id = User.objects.get(username="test_user2").id
+        self.assertEqual(response.data[0]["Author"], Author_id)
+        self.assertEqual(response.data[0]["Name"], "Flight to Rome")
+
+    def test_Authenticated(self):
+        # Testing that the user must be authenticated to access any of the entries.
+        Client = APIClient()
+        response = Client.get(self.calendar_items_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Testing that the user must be authenticated to access an individual entry.
+        pk = Calendar_API.objects.first().id
+        self.calendar_item_url = reverse('calendar-item', args = [pk])
+        response = Client.get(self.calendar_item_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class APIDetailTest(APITestCase):
     calendar_items_url = reverse('calendar')  # URL for all items
 
     def setUp(self):
+        # Create an initial user to be used, not a superuser.
+        self.testuser1 = User.objects.create_user(username="test_user1", password="password")
+        self.client.login(username="test_user1", password="password")
+
         # Creating an initial entry to be tested.
         data = {
             "Name": "Flight to Paris",
@@ -110,9 +150,42 @@ class APIDetailTest(APITestCase):
 
     def test_Get(self):
         # Testing that getting an item by id returns the correct data.
-        response = self.client.get(self.calendar_items_url)
+        pk = Calendar_API.objects.first().id
+        self.calendar_item_url = reverse('calendar-item', args = [pk])
+
+        response = self.client.get(self.calendar_item_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data[0]["Name"], "Flight to Paris")
+        self.assertEqual(response.data["Name"], "Flight to Paris")
+
+    def test_Get_Permission(self):
+        # Testing that a user can only get calendar entries that are posted by them.
+
+        # Creating a new user and making a calendar entry.
+        self.testuser2 = User.objects.create_user(username="test_user2", password="password")
+        self.client.login(username="test_user2", password="password")
+
+        data = {
+            "Name": "Flight to Rome",
+            "Description": "Don't forget passport",
+            "Date": "2022-07-05",
+            "Time": "13:47:00",
+            "Tag": "",
+            }
+        self.client.post(self.calendar_items_url, data, format='json')
+        testuser2_id = User.objects.get(username="test_user2").id
+        testuser1_id = User.objects.get(username="test_user1").id
+
+        # Now checking if the new user can get the above (its own) calendar entry.
+        pk = Calendar_API.objects.get(Name="Flight to Rome").id
+        self.calendar_item_url = reverse('calendar-item', args = [pk])
+        response = self.client.get(self.calendar_item_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Now checking if the new user can get the initial setUp calendar entry.
+        pk = Calendar_API.objects.first().id
+        self.calendar_item_url = reverse('calendar-item', args = [pk])
+        response = self.client.get(self.calendar_item_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_Update_Item(self):
         # Testing that changing the data works correctly.
@@ -138,6 +211,28 @@ class APIDetailTest(APITestCase):
         self.assertEqual(response.data["Date"], "2022-05-29")
         self.assertEqual(response.data["Time"], "11:37:00")
 
+    def test_Update_Item_Permission(self):
+        # Testing that only the creator of a calender entry can edit it.
+
+        # Creating a new user and trying to edit test_user1's calendar entry.
+        self.testuser2 = User.objects.create_user(username="test_user2", password="password")
+        self.client.login(username="test_user2", password="password")
+
+        # Getting the first id in the db and accessing the url for it.
+        pk = Calendar_API.objects.first().id
+        self.calendar_item_url = reverse('calendar-item', args = [pk])
+
+        data = {
+            "Name": "Flight to Paris",
+            "Description": "Board terminal 6",
+            "Date": "2022-05-29",
+            "Time": "11:37:00",
+            "Tag": "Work",
+        }
+        # Testing that the update will not work.
+        response = self.client.put(self.calendar_item_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
     def test_Delete_Item(self):
         # Getting the first id in the db and accessing the url for it.
         pk = Calendar_API.objects.first().id
@@ -150,3 +245,18 @@ class APIDetailTest(APITestCase):
         # Testing that the item no longer exists after it has been deleted
         response = self.client.get(self.calendar_item_url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_Delete_Item_Permission(self):
+        # Testing that only the creator of a calendar entry can delete that entry.
+
+        # Creating a new user and trying to edit test_user1's calendar entry.
+        self.testuser2 = User.objects.create_user(username="test_user2", password="password")
+        self.client.login(username="test_user2", password="password")
+
+        # Getting the first id in the db and accessing the url for it.
+        pk = Calendar_API.objects.first().id
+        self.calendar_item_url = reverse('calendar-item', args = [pk])
+
+        # Testing that delete will not work.
+        response = self.client.delete(self.calendar_item_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
