@@ -7,3 +7,5 @@ Currently you can perform the following operations:
 
 - Get all entries
 - Get, post, update and delete individual entry
+
+Simple JWT Authentication is used.
