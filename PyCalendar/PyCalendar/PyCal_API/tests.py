@@ -3,7 +3,7 @@ from rest_framework.test import APITestCase
 from rest_framework.test import APIClient
 from rest_framework import status
 from PyCalendar.PyCal_API.models import Calendar_API
-from django.contrib.auth.models import User
+from django.conf import settings
 
 
 class APIListTest(APITestCase):
@@ -12,7 +12,7 @@ class APIListTest(APITestCase):
 
     def setUp(self):
         # Create an initial user to be used, not a superuser.
-        self.testuser1 = User.objects.create_user(username="test_user1", password="password")
+        self.testuser1 = settings.AUTH_USER_MODEL.objects.create_user(username="test_user1", password="password")
         #self.client.login(username="test_user1", password="password")
         self.client = APIClient()
         tokens = self.client.post(self.token_url, data={"username":"test_user1", "password":"password"})

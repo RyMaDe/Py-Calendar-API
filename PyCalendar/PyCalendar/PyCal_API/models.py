@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 
 
 class Calendar_API(models.Model):
@@ -15,7 +15,7 @@ class Calendar_API(models.Model):
     Tag = models.CharField(blank=True, max_length=5, choices=tag_choices)
 
     Author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='calendar_entry')
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='calendar_entry')
 
     def __str__(self):
         return self.Name
