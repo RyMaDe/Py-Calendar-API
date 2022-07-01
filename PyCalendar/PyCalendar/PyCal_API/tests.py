@@ -3,7 +3,7 @@ from rest_framework.test import APITestCase
 from rest_framework.test import APIClient
 from rest_framework import status
 from PyCalendar.PyCal_API.models import Calendar_API
-from django.conf import settings
+from django.contrib.auth import get_user_model
 
 
 class APIListTest(APITestCase):
@@ -11,11 +11,12 @@ class APIListTest(APITestCase):
     token_url = reverse("token_obtain_pair")
 
     def setUp(self):
+        user = get_user_model()
         # Create an initial user to be used, not a superuser.
-        self.testuser1 = settings.AUTH_USER_MODEL.objects.create_user(username="test_user1", password="password")
+        self.testuser1 = user.objects.create_user(email="test_user1@user.com", password="password")
         #self.client.login(username="test_user1", password="password")
         self.client = APIClient()
-        tokens = self.client.post(self.token_url, data={"username":"test_user1", "password":"password"})
+        tokens = self.client.post(self.token_url, data={"email":"test_user1@user.com", "password":"password"})
         self.client.credentials(HTTP_AUTHORIZATION="Bearer "+tokens.data["access"])
 
         # Creating an initial entry to be tested.
@@ -102,10 +103,11 @@ class APIListTest(APITestCase):
     def test_Get_All_Permission(self):
         # Creating a second user, posting a calendar entry and making sure only
         # their entry is shown when get request is made and not the first user's.
-        self.testuser2 = User.objects.create_user(username="test_user2", password="password")
+        user = get_user_model()
+        self.testuser2 = user.objects.create_user(email="test_user2@user.com", password="password")
         #self.client.login(username="test_user2", password="password")  # This is basic authentication
         self.client = APIClient()
-        tokens = self.client.post(self.token_url, data={"username":"test_user2", "password":"password"})
+        tokens = self.client.post(self.token_url, data={"email":"test_user2@user.com", "password":"password"})
         self.client.credentials(HTTP_AUTHORIZATION="Bearer "+tokens.data["access"])
 
         data = {
@@ -122,7 +124,7 @@ class APIListTest(APITestCase):
         # Testing that only 1 item is returned, not 2.
         self.assertEqual(len(response.data), 1)
         # Testing the the item that is returned is the above and was posted by the new user.
-        Author_id = User.objects.get(username="test_user2").id
+        Author_id = user.objects.get(email="test_user2@user.com").id
         self.assertEqual(response.data[0]["Author"], Author_id)
         self.assertEqual(response.data[0]["Name"], "Flight to Rome")
 
@@ -145,10 +147,11 @@ class APIDetailTest(APITestCase):
 
     def setUp(self):
         # Create an initial user to be used, not a superuser.
-        self.testuser1 = User.objects.create_user(username="test_user1", password="password")
+        user = get_user_model()
+        self.testuser1 = user.objects.create_user(email="test_user1@user.com", password="password")
         # self.client.login(username="test_user1", password="password")
         self.client = APIClient()
-        tokens = self.client.post(self.token_url, data={"username":"test_user1", "password":"password"})
+        tokens = self.client.post(self.token_url, data={"email":"test_user1@user.com", "password":"password"})
         self.client.credentials(HTTP_AUTHORIZATION="Bearer "+tokens.data["access"])
 
         # Creating an initial entry to be tested.
@@ -170,14 +173,18 @@ class APIDetailTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["Name"], "Flight to Paris")
 
+        # Testing the model return statement
+        self.assertEqual(str(Calendar_API.objects.first()), "Flight to Paris")
+
     def test_Get_Permission(self):
         # Testing that a user can only get calendar entries that are posted by them.
 
         # Creating a new user and making a calendar entry.
-        self.testuser2 = User.objects.create_user(username="test_user2", password="password")
+        user = get_user_model()
+        self.testuser2 = user.objects.create_user(email="test_user2@user.com", password="password")
         #self.client.login(username="test_user2", password="password")
         self.client = APIClient()
-        tokens = self.client.post(self.token_url, data={"username":"test_user2", "password":"password"})
+        tokens = self.client.post(self.token_url, data={"email":"test_user2@user.com", "password":"password"})
         self.client.credentials(HTTP_AUTHORIZATION="Bearer "+tokens.data["access"])
 
         data = {
@@ -188,8 +195,8 @@ class APIDetailTest(APITestCase):
             "Tag": "",
             }
         self.client.post(self.calendar_items_url, data, format='json')
-        testuser2_id = User.objects.get(username="test_user2").id
-        testuser1_id = User.objects.get(username="test_user1").id
+        testuser2_id = user.objects.get(email="test_user2@user.com").id
+        testuser1_id = user.objects.get(email="test_user1@user.com").id
 
         # Now checking if the new user can get the above (its own) calendar entry.
         pk = Calendar_API.objects.get(Name="Flight to Rome").id
@@ -213,7 +220,7 @@ class APIDetailTest(APITestCase):
             "Tag": "Work",
         }
 
-        # Getting the first id in the db and accessing the url for it.
+        # Getting the first id in the user and accessing the url for it.
         pk = Calendar_API.objects.first().id
         self.calendar_item_url = reverse('calendar-item', args = [pk])
 
@@ -231,13 +238,14 @@ class APIDetailTest(APITestCase):
         # Testing that only the creator of a calender entry can edit it.
 
         # Creating a new user and trying to edit test_user1's calendar entry.
-        self.testuser2 = User.objects.create_user(username="test_user2", password="password")
+        user = get_user_model()
+        self.testuser2 = user.objects.create_user(email="test_user2@user.com", password="password")
         #self.client.login(username="test_user2", password="password")
         self.client = APIClient()
-        tokens = self.client.post(self.token_url, data={"username":"test_user2", "password":"password"})
+        tokens = self.client.post(self.token_url, data={"email":"test_user2@user.com", "password":"password"})
         self.client.credentials(HTTP_AUTHORIZATION="Bearer "+tokens.data["access"])
 
-        # Getting the first id in the db and accessing the url for it.
+        # Getting the first id in the user and accessing the url for it.
         pk = Calendar_API.objects.first().id
         self.calendar_item_url = reverse('calendar-item', args = [pk])
 
@@ -253,7 +261,7 @@ class APIDetailTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_Delete_Item(self):
-        # Getting the first id in the db and accessing the url for it.
+        # Getting the first id in the user and accessing the url for it.
         pk = Calendar_API.objects.first().id
         self.calendar_item_url = reverse('calendar-item', args = [pk])
 
@@ -269,13 +277,14 @@ class APIDetailTest(APITestCase):
         # Testing that only the creator of a calendar entry can delete that entry.
 
         # Creating a new user and trying to edit test_user1's calendar entry.
-        self.testuser2 = User.objects.create_user(username="test_user2", password="password")
+        user = get_user_model()
+        self.testuser2 = user.objects.create_user(email="test_user2@user.com", password="password")
         # self.client.login(username="test_user2", password="password")
         self.client = APIClient()
-        tokens = self.client.post(self.token_url, data={"username":"test_user2", "password":"password"})
+        tokens = self.client.post(self.token_url, data={"email":"test_user2@user.com", "password":"password"})
         self.client.credentials(HTTP_AUTHORIZATION="Bearer "+tokens.data["access"])
 
-        # Getting the first id in the db and accessing the url for it.
+        # Getting the first id in the user and accessing the url for it.
         pk = Calendar_API.objects.first().id
         self.calendar_item_url = reverse('calendar-item', args = [pk])
 
