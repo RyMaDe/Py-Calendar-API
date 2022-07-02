@@ -110,3 +110,27 @@ class CalendarDetailApiView(APIView, UserWritePermission):
             {"res": "Calendar entry deleted"},
             status=status.HTTP_200_OK
         )
+
+
+class CalendarSearchAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        '''
+        List all calendar items between two dates
+        '''
+        user = self.request.user
+        items = Calendar_API.objects.filter(Author=user)
+
+        start_date = self.request.query_params.get('start_date', None)
+        end_date = self.request.query_params.get('end_date', None)
+        
+        if start_date and end_date:
+            datefiltered = items.filter(Date__range=(start_date, end_date))
+        elif start_date and not end_date:
+            datefiltered = items.filter(Date__gte=start_date)
+        elif not start_date and end_date:
+            datefiltered = items.filter(Date__lte=end_date)
+        else:
+            datefiltered = None
+
+        serializer = Calendar_API_Serializer(datefiltered, many=True)
+        return Response(serializer.data, status = status.HTTP_200_OK)
