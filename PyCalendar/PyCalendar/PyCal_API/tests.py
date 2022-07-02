@@ -234,6 +234,23 @@ class APIDetailTest(APITestCase):
         self.assertEqual(response.data["Date"], "2022-05-29")
         self.assertEqual(response.data["Time"], "11:37:00")
 
+        # Tests that if the calendar entry does not exist, an error is thrown.
+        self.calendar_item_url2 = reverse('calendar-item', args = [999999999999])
+
+        response = self.client.put(self.calendar_item_url2, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Testing error is thrown when invalid data is used.
+        data = {
+            "Name": "Flight to Paris",
+            "Description": "Board terminal 6",
+            "Date": "2022-105-29",
+            "Time": "11:37:00",
+            "Tag": "Work",
+        }
+        response = self.client.put(self.calendar_item_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_Update_Item_Permission(self):
         # Testing that only the creator of a calender entry can edit it.
 
@@ -271,6 +288,12 @@ class APIDetailTest(APITestCase):
 
         # Testing that the item no longer exists after it has been deleted
         response = self.client.get(self.calendar_item_url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Testing that if the calendar entry does not exist, an error is thrown.
+        self.calendar_item_url2 = reverse('calendar-item', args = [999999999999])
+
+        response = self.client.delete(self.calendar_item_url2, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_Delete_Item_Permission(self):
