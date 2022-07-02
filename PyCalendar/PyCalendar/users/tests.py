@@ -1,4 +1,5 @@
-from re import L
+from django.urls import reverse
+from rest_framework import status
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
@@ -39,3 +40,15 @@ class UserAccountTests(TestCase):
         with self.assertRaises(ValueError):
             db.objects.create_user(
                 email='', password='password')
+
+    def test_new_user_Post(self):
+        # Testing that the url post request works with valid data.
+        url = reverse("users:Create_user")
+
+        data = {"email": "testuser@a.com", "password": "password"}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        data = {"email": "", "password": "password"}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
