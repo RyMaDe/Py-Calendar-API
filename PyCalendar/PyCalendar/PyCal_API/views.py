@@ -103,7 +103,7 @@ class CalendarDetailApiView(APIView, UserWritePermission):
         if not calendarEntry:
             return Response(
                 {"res": "Calendar entry does not exist"},
-                status = status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST
             )
         calendarEntry.delete()
         return Response(
@@ -130,7 +130,9 @@ class CalendarSearchAPIView(APIView):
         elif not start_date and end_date:
             datefiltered = items.filter(Date__lte=end_date)
         else:
-            datefiltered = None
+            return Response(
+                {"res": "No dates entered"},
+                status=status.HTTP_400_BAD_REQUEST)
 
         serializer = Calendar_API_Serializer(datefiltered, many=True)
         return Response(serializer.data, status = status.HTTP_200_OK)
