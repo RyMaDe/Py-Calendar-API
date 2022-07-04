@@ -314,3 +314,120 @@ class APIDetailTest(APITestCase):
         # Testing that delete will not work.
         response = self.client.delete(self.calendar_item_url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class APISearchTest(APITestCase):
+    calendar_items_url = reverse('calendar')
+    token_url = reverse("token_obtain_pair")
+
+    def setUp(self):
+        user = get_user_model()
+        # Create an initial user to be used, not a superuser.
+        self.testuser1 = user.objects.create_user(email="test_user1@user.com", password="password")
+        #self.client.login(username="test_user1", password="password")
+        self.client = APIClient()
+        tokens = self.client.post(self.token_url, data={"email":"test_user1@user.com", "password":"password"})
+        self.client.credentials(HTTP_AUTHORIZATION="Bearer "+tokens.data["access"])
+
+        # Creating an initial entry to be tested.
+        data = {
+            "Name": "Flight to Paris",
+            "Description": "Board terminal 3",
+            "Date": "2022-05-29",
+            "Time": "11:37:00",
+            "Tag": "",
+            }
+        self.client.post(self.calendar_items_url, data, format='json')
+
+        # Making a second post for the user:
+        data = {
+            "Name": "Flight to Rome",
+            "Description": "Bring Camera",
+            "Date": "2022-06-20",
+            "Time": "13:15:00",
+            "Tag": "",
+            }
+        self.client.post(self.calendar_items_url, data, format='json')
+
+        # Creating a second user and making a post for them too.
+        self.testuser2 = user.objects.create_user(email="test_user2@user.com", password="password")
+        #self.client.login(username="test_user1", password="password")
+        self.client2 = APIClient()
+        tokens = self.client2.post(self.token_url, data={"email":"test_user2@user.com", "password":"password"})
+        self.client2.credentials(HTTP_AUTHORIZATION="Bearer "+tokens.data["access"])
+
+        # Creating an initial entry for user2.
+        data = {
+            "Name": "Flight to Berlin",
+            "Description": "Board terminal 5",
+            "Date": "2022-05-30",
+            "Time": "12:00:00",
+            "Tag": "",
+            }
+        self.client2.post(self.calendar_items_url, data, format='json')
+
+    def test_Get_Search(self):
+        # Testing that the search will return the correct items by date range,
+        # and for the correct user.
+        self.search_url = reverse("datesearch")
+
+        # Making the first get request between two dates:
+        response = self.client.get(self.search_url, data={"start_date": "2022-05-01",
+                    "end_date": "2022-05-31"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Testing that only one item is returned and it belongs to test_user1.
+        # The data from testuser2 does not appear.
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["Author"], self.testuser1.id)
+        # Making sure the returned data item was in the correct date range.
+        self.assertEqual(response.data[0]["Date"], "2022-05-29")
+
+        # Making a request with only a start date:
+        response = self.client.get(self.search_url, data={"start_date": "2022-05-01"},
+                                    format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Testing that two items are returned and they belongs to testuser1.
+        # The data from testuser2 does not appear.
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data[0]["Author"], self.testuser1.id)
+        self.assertEqual(response.data[1]["Author"], self.testuser1.id)
+        # Making sure the returned data was in the correct date range.
+        self.assertEqual(response.data[0]["Date"], "2022-05-29")
+        self.assertEqual(response.data[1]["Date"], "2022-06-20")
+
+        # Making a request with only an end date:
+        response = self.client.get(self.search_url, data={"end_date": "2022-06-30"},
+                                    format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Testing that two items are returned and they belongs to testuser1.
+        # The data from testuser2 does not appear.
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data[0]["Author"], self.testuser1.id)
+        self.assertEqual(response.data[1]["Author"], self.testuser1.id)
+        # Making sure the returned data was in the correct date range.
+        self.assertEqual(response.data[0]["Date"], "2022-05-29")
+        self.assertEqual(response.data[1]["Date"], "2022-06-20")
+
+        # Making a request without any data:
+        response = self.client.get(self.search_url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        # Testing that nothing is returned
+        self.assertEqual(response.data, {"res": "No dates entered"})
+
+    def test_Get_Query(self):
+        # Testing that search by query will return relevant results.
+        self.searchQuery_url = reverse("querysearch")
+
+        # Making the first get request:
+        response = self.client.get(self.searchQuery_url, data={"q": "Paris"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Testing that only one item is returned and it belongs to test_user1.
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["Author"], self.testuser1.id)
+        # Making sure the returned data item was the correct item.
+        self.assertEqual(response.data[0]["Name"], "Flight to Paris")
+
+        # Testing that error is thrown when no query paramenters are given.
+        response = self.client.get(self.searchQuery_url, data={"q":""}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, {"res": "No queries entered"})

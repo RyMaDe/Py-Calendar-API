@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'PyCalendar.PyCal_API',
     'PyCalendar.users',
+    'django.contrib.postgres',
 ]
 
 MIDDLEWARE = [
