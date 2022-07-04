@@ -319,7 +319,6 @@ class APIDetailTest(APITestCase):
 class APISearchTest(APITestCase):
     calendar_items_url = reverse('calendar')
     token_url = reverse("token_obtain_pair")
-    search_url = reverse("datesearch")
 
     def setUp(self):
         user = get_user_model()
@@ -370,6 +369,7 @@ class APISearchTest(APITestCase):
     def test_Get_Search(self):
         # Testing that the search will return the correct items by date range,
         # and for the correct user.
+        self.search_url = reverse("datesearch")
 
         # Making the first get request between two dates:
         response = self.client.get(self.search_url, data={"start_date": "2022-05-01",
@@ -413,3 +413,21 @@ class APISearchTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         # Testing that nothing is returned
         self.assertEqual(response.data, {"res": "No dates entered"})
+
+    def test_Get_Query(self):
+        # Testing that search by query will return relevant results.
+        self.searchQuery_url = reverse("querysearch")
+
+        # Making the first get request:
+        response = self.client.get(self.searchQuery_url, data={"q": "Paris"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Testing that only one item is returned and it belongs to test_user1.
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["Author"], self.testuser1.id)
+        # Making sure the returned data item was the correct item.
+        self.assertEqual(response.data[0]["Name"], "Flight to Paris")
+
+        # Testing that error is thrown when no query paramenters are given.
+        response = self.client.get(self.searchQuery_url, data={"q":""}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, {"res": "No queries entered"})

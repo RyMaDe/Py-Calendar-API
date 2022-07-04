@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'PyCalendar.PyCal_API',
     'PyCalendar.users',
+    'django.contrib.postgres',
 ]
 
 MIDDLEWARE = [
@@ -100,9 +101,9 @@ DATABASES = {
 }
 
 REST_FRAMEWORK = {
-    # 'DEFAULT_AUTHENTICATION_CLASSES': (
-    #     'rest_framework_simplejwt.authentication.JWTAuthentication',
-    # ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ]

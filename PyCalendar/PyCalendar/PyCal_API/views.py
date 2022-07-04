@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.permissions import BasePermission
 from .models import Calendar_API
 from .serializers import Calendar_API_Serializer
-from django.db.models import Q
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 
 
 class UserWritePermission(BasePermission):
@@ -140,7 +140,7 @@ class CalendarSearchAPIView(APIView):
 
 
 class CalendarQueryAPIView(APIView):
-    
+
     def get(self, request, *args, **kwargs):
         query = self.request.query_params.get("q")
         if not query:
@@ -149,9 +149,13 @@ class CalendarQueryAPIView(APIView):
                 status = status.HTTP_400_BAD_REQUEST)
 
         user = self.request.user
-        items = Calendar_API.objects.filter(Author=user).filter(
-            Q(Name__icontains=query) | Q(Description__icontains=query)
-        )
+        items = Calendar_API.objects.filter(Author=user)
+
+        search_vector = SearchVector("Name", "Description")
+        search_query = SearchQuery(query)
+        items = items.annotate(search=search_vector, 
+                    rank=SearchRank(search_vector, search_query)
+                ).filter(search=search_query).order_by("-rank")
 
         serializer = Calendar_API_Serializer(items, many=True)
         return Response(serializer.data, status = status.HTTP_200_OK)
