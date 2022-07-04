@@ -367,7 +367,7 @@ class APISearchTest(APITestCase):
             }
         self.client2.post(self.calendar_items_url, data, format='json')
 
-    def test_Get(self):
+    def test_Get_Search(self):
         # Testing that the search will return the correct items by date range,
         # and for the correct user.
 

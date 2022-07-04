@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.permissions import BasePermission
 from .models import Calendar_API
 from .serializers import Calendar_API_Serializer
+from django.db.models import Q
 
 
 class UserWritePermission(BasePermission):
@@ -135,4 +136,22 @@ class CalendarSearchAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST)
 
         serializer = Calendar_API_Serializer(datefiltered, many=True)
+        return Response(serializer.data, status = status.HTTP_200_OK)
+
+
+class CalendarQueryAPIView(APIView):
+    
+    def get(self, request, *args, **kwargs):
+        query = self.request.query_params.get("q")
+        if not query:
+            return Response(
+                {"res": "No queries entered"},
+                status = status.HTTP_400_BAD_REQUEST)
+
+        user = self.request.user
+        items = Calendar_API.objects.filter(Author=user).filter(
+            Q(Name__icontains=query) | Q(Description__icontains=query)
+        )
+
+        serializer = Calendar_API_Serializer(items, many=True)
         return Response(serializer.data, status = status.HTTP_200_OK)
