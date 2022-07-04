@@ -3,3 +3,5 @@ djangorestframework==3.13.1
 django-environ
 psycopg2
 djangorestframework-simplejwt
+pyyaml
+coreapi
