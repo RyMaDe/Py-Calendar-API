@@ -4,4 +4,4 @@ django-environ
 psycopg2
 djangorestframework-simplejwt
 pyyaml
-coreapi
+drf-yasg

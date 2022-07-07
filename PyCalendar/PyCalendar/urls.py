@@ -14,14 +14,26 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from PyCalendar.PyCal_API import urls as api_urls
 from PyCalendar.users import urls as users_urls
-from rest_framework.schemas import get_schema_view
-from rest_framework.documentation import include_docs_urls
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
+)
+from PyCalendar.users.views import DecoratedTokenObtainPairView, DecoratedTokenRefreshView
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+schema_view = get_schema_view(
+   openapi.Info(
+      title="Calendar API Schema",
+      default_version='v1',
+      description="Documentation for PyCalendar API",
+   ),
+   public=True,
+   permission_classes=[permissions.AllowAny],
 )
 
 urlpatterns = [
@@ -29,12 +41,11 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
     path('api/', include(api_urls)),
     path('api/user/', include(users_urls, namespace='users')),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('schema', get_schema_view(
-        title="CalendarAPI",
-        description="API for the Calendar API",
-        version="1.0.0",
-    ), name="api-schema"),
-    path('docs/', include_docs_urls(title='CalendarAPI')),
+    # SimpleJWT auth:
+    path('api/token/', DecoratedTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', DecoratedTokenRefreshView.as_view(), name='token_refresh'),
+    # Schema and documentation:
+    re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    re_path(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    re_path(r'^redoc/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
