@@ -431,3 +431,36 @@ class APISearchTest(APITestCase):
         response = self.client.get(self.searchQuery_url, data={"q":""}, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data, {"res": "No queries entered"})
+
+
+class APITokenTest(APITestCase):
+    token_url = reverse("token_obtain_pair")
+    token_refresh_url = reverse("token_refresh")
+
+    def setUp(self):
+        user = get_user_model()
+        self.testuser1 = user.objects.create_user(email="test_user1@user.com", password="password")
+        # self.client.login(username="test_user1", password="password")
+        self.client = APIClient()
+
+    def test_get_tokens(self):
+        # Testing that the Token authentication system is working and returns
+        # the token pair.
+        tokens = self.client.post(self.token_url, data={"email":"test_user1@user.com", "password":"password"})
+        self.assertEqual(tokens.status_code, status.HTTP_200_OK)
+        self.assertIn("access", tokens.data)
+        self.assertIn("refresh", tokens.data) 
+
+    def test_refresh_token(self):
+        # Testing that the refresh token provided goes through fine and returns
+        # an access token.
+        tokens = self.client.post(self.token_url, data={"email":"test_user1@user.com", "password":"password"})
+        new_access_token = self.client.post(self.token_refresh_url, data={"refresh": tokens.data["refresh"]})
+        self.assertEqual(new_access_token.status_code, status.HTTP_200_OK)
+        self.assertIn("access", new_access_token.data)
+
+        # Testing that the access token received works by making a simple get request.
+        calendar_items_url = reverse('calendar')
+        self.client.credentials(HTTP_AUTHORIZATION="Bearer "+new_access_token.data["access"])
+        response = self.client.get(calendar_items_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

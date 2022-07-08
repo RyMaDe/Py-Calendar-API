@@ -1,4 +1,3 @@
-from functools import partial
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -6,6 +5,8 @@ from rest_framework.permissions import BasePermission
 from .models import Calendar_API
 from .serializers import Calendar_API_Serializer
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 
 class UserWritePermission(BasePermission):
@@ -14,6 +15,9 @@ class UserWritePermission(BasePermission):
 
 
 class CalendarListAPIView(APIView):
+    @swagger_auto_schema(
+        responses={200: Calendar_API_Serializer(many=True)},
+    )
     def get(self, request, *args, **kwargs):
         '''
         List all on going calendar items
@@ -24,6 +28,13 @@ class CalendarListAPIView(APIView):
 
         return Response(serializer.data, status = status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        request_body=Calendar_API_Serializer,
+        responses={
+            201: Calendar_API_Serializer(many=True),
+            400: "Bad Request",
+        }
+    )
     def post(self, request, *args, **kwargs):
         '''
         Create a calendar entry
@@ -72,6 +83,13 @@ class CalendarDetailApiView(APIView, UserWritePermission):
         serializer = Calendar_API_Serializer(calendarEntry)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        request_body=Calendar_API_Serializer,
+        responses={
+            200: Calendar_API_Serializer(many=True),
+            400: "Bad Request",
+        }
+    )
     def put(self, request, calendar_id, *args, **kwargs):
         '''
         Updates the calendar entry
@@ -114,6 +132,16 @@ class CalendarDetailApiView(APIView, UserWritePermission):
 
 
 class CalendarSearchAPIView(APIView):
+    @swagger_auto_schema(
+        manual_parameters= [
+            openapi.Schema(name='start_date', in_=openapi.IN_QUERY, description='start date', type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE),
+            openapi.Schema(name='end_date', in_=openapi.IN_QUERY, description='end date', type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE),
+        ],
+        responses={
+            200: Calendar_API_Serializer(many=True),
+            400: "Bad Request",
+        }
+    )
     def get(self, request, *args, **kwargs):
         '''
         List all calendar items between two dates
@@ -140,16 +168,27 @@ class CalendarSearchAPIView(APIView):
 
 
 class CalendarQueryAPIView(APIView):
-
+    @swagger_auto_schema(
+        manual_parameters= [
+            openapi.Schema(name='Queries', in_=openapi.IN_QUERY, description='queries', type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE),
+        ],
+        responses={
+            200: Calendar_API_Serializer(many=True),
+            400: "Bad Request",
+        }
+    )
     def get(self, request, *args, **kwargs):
+        '''
+        Lists all calendar items who Name or Description match the queries.
+        '''
+        user = self.request.user
+        items = Calendar_API.objects.filter(Author=user)
+
         query = self.request.query_params.get("q")
         if not query:
             return Response(
                 {"res": "No queries entered"},
                 status = status.HTTP_400_BAD_REQUEST)
-
-        user = self.request.user
-        items = Calendar_API.objects.filter(Author=user)
 
         search_vector = SearchVector("Name", "Description")
         search_query = SearchQuery(query)
