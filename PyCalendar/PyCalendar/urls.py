@@ -17,6 +17,7 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from PyCalendar.PyCal_API import urls as api_urls
 from PyCalendar.users import urls as users_urls
+from PyCalendar.CalendarSite import urls as calendarSite_urls
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -38,6 +39,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', include(calendarSite_urls)),
     path('api-auth/', include('rest_framework.urls')),
     path('api/', include(api_urls)),
     path('api/user/', include(users_urls, namespace='users')),

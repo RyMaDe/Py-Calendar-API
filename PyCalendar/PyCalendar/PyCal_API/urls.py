@@ -1,4 +1,4 @@
-from django.urls import URLPattern, path, include
+from django.urls import path, include
 from .views import (
     CalendarListAPIView,
     CalendarDetailApiView,
