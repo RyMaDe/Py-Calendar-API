@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'PyCalendar.users',
     'django.contrib.postgres',
     'drf_yasg',
+    'PyCalendar.CalendarSite',
 ]
 
 MIDDLEWARE = [
