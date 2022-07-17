@@ -17,6 +17,10 @@ from django.views import View
 from django.shortcuts import redirect
 from django.urls import reverse
 from rest_framework.renderers import TemplateHTMLRenderer
+from django.contrib.auth import authenticate, login, logout
+from .serializers import loginSerializer
+from django.contrib.auth.mixins import LoginRequiredMixin
+
 
 class CustomUserCreate(APIView):
     permission_classes = [AllowAny]
@@ -55,8 +59,6 @@ class CustomUserCreateSite(APIView):
         return Response({"serializer": serializer})
 
 
-from django.contrib.auth import authenticate, login, logout
-from .serializers import loginSerializer
 class LoginUserSite(APIView):
     permission_classes = [AllowAny]
     renderer_classes = [TemplateHTMLRenderer]
@@ -82,7 +84,9 @@ class LoginUserSite(APIView):
         return Response({"serializer": serializer})
 
 
-class LogoutUserSite(View):
+class LogoutUserSite(View, LoginRequiredMixin):
+    login_url = '/login/'
+    redirect_field_name = 'Login_user'
 
     def get(self, request):
         logout(request)
