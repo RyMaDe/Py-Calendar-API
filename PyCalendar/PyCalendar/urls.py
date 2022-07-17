@@ -42,7 +42,7 @@ urlpatterns = [
     path('', include(calendarSite_urls)),
     path('api-auth/', include('rest_framework.urls')),
     path('api/', include(api_urls)),
-    path('api/user/', include(users_urls, namespace='users')),
+    path('user/', include(users_urls, namespace='users')),
     # SimpleJWT auth:
     path('api/token/', DecoratedTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', DecoratedTokenRefreshView.as_view(), name='token_refresh'),

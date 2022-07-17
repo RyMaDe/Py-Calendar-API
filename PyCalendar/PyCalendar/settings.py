@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 import environ
+import os
 
 # Initialise environment variables
 env = environ.Env()
@@ -66,7 +67,7 @@ ROOT_URLCONF = 'PyCalendar.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, "PyCalendar/templates")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
