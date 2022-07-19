@@ -14,11 +14,12 @@ from rest_framework_simplejwt.views import (
 )
 
 from django.views import View
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from rest_framework.renderers import TemplateHTMLRenderer
 from django.contrib.auth import authenticate, login, logout
 from .serializers import loginSerializer
+from .forms import RegisterUserForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 
@@ -93,24 +94,22 @@ class LogoutUserSite(View, LoginRequiredMixin):
         return redirect(reverse("users:Login_user"))
 
 
-class UpdateUserDetails(APIView):
-    renderer_classes = [TemplateHTMLRenderer]
+class UpdateUserDetails(View, LoginRequiredMixin):
     template_name = "settings.html"
 
     def get(self, request):
         user = self.request.user
-        print(user)
-        serializer = RegisterUserSerializer(user)
-        return Response({"serializer": serializer, "user":user})
+        form = RegisterUserForm(instance=user)
+        return render(request, self.template_name, {"form":form})
 
     def post(self, request):
         user = self.request.user
-        serializer = RegisterUserSerializer(user, data=request.data)
-        if serializer.is_valid():
-            newuser = serializer.save()
+        form = RegisterUserForm(request.POST, instance=user)
+        if form.is_valid():
+            newuser = form.save()
             if newuser:
                 return redirect(reverse("CalendarSite:calendar"))
-        return Response({"serializer": serializer, "user":user})
+        return render(request, self.template_name, {"form":form})
 
 
 # The below classes have been added for the drf-yasg integration with SimpleJWT
