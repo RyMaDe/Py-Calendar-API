@@ -4,5 +4,5 @@ from .views import Index
 app_name = 'CalendarSite'
 
 urlpatterns = [
-    path("calendar/", Index.as_view(), name="calendar"),
+    path("calendar/", Index.as_view(), name="calendarSite"),
 ]

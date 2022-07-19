@@ -15,7 +15,7 @@ from rest_framework_simplejwt.views import (
 
 from django.views import View
 from django.shortcuts import redirect, render
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from rest_framework.renderers import TemplateHTMLRenderer
 from django.contrib.auth import authenticate, login, logout
 from .serializers import loginSerializer
@@ -85,16 +85,18 @@ class LoginUserSite(APIView):
         return Response({"serializer": serializer})
 
 
-class LogoutUserSite(View, LoginRequiredMixin):
-    login_url = '/login/'
-    redirect_field_name = 'Login_user'
+class LogoutUserSite(LoginRequiredMixin, View):
+    login_url = reverse_lazy("users:Login_user")
+    redirect_field_name = None
 
     def get(self, request):
         logout(request)
         return redirect(reverse("users:Login_user"))
 
 
-class UpdateUserDetails(View, LoginRequiredMixin):
+class UpdateUserDetails(LoginRequiredMixin, View):
+    login_url = reverse_lazy("users:Login_user")
+    redirect_field_name = None
     template_name = "settings.html"
 
     def get(self, request):

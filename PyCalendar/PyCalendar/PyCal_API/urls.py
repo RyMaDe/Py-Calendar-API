@@ -5,6 +5,7 @@ from .views import (
     CalendarSearchAPIView,
     CalendarQueryAPIView,
 )
+app_name = 'PyCalAPI'
 
 urlpatterns = [
     path('', CalendarListAPIView.as_view(), name="calendar"),

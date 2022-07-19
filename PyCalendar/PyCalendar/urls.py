@@ -39,9 +39,9 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include(calendarSite_urls)),
+    path('', include(calendarSite_urls, namespace='CalendarSite')),
     path('api-auth/', include('rest_framework.urls')),
-    path('api/', include(api_urls)),
+    path('api/', include(api_urls, namespace='PyCalAPI')),
     path('user/', include(users_urls, namespace='users')),
     # SimpleJWT auth:
     path('api/token/', DecoratedTokenObtainPairView.as_view(), name='token_obtain_pair'),
