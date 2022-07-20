@@ -19,7 +19,7 @@ from django.urls import reverse, reverse_lazy
 from rest_framework.renderers import TemplateHTMLRenderer
 from django.contrib.auth import authenticate, login, logout
 from .serializers import loginSerializer
-from .forms import RegisterUserForm
+from .forms import UpdateUserForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 
@@ -80,7 +80,7 @@ class LoginUserSite(APIView):
 
             if user is not None:
                 login(request, user)
-                return redirect(reverse("CalendarSite:calendar"))
+                return redirect(reverse("CalendarSite:calendarSite"))
 
         return Response({"serializer": serializer})
 
@@ -101,16 +101,16 @@ class UpdateUserDetails(LoginRequiredMixin, View):
 
     def get(self, request):
         user = self.request.user
-        form = RegisterUserForm(instance=user)
+        form = UpdateUserForm(instance=user)
         return render(request, self.template_name, {"form":form})
 
     def post(self, request):
         user = self.request.user
-        form = RegisterUserForm(request.POST, instance=user)
+        form = UpdateUserForm(request.POST, instance=user)
         if form.is_valid():
             newuser = form.save()
             if newuser:
-                return redirect(reverse("CalendarSite:calendar"))
+                return redirect(reverse("CalendarSite:calendarSite"))
         return render(request, self.template_name, {"form":form})
 
 

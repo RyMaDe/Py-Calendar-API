@@ -2,7 +2,7 @@ from django.forms import ModelForm
 from .models import NewUser
 
 
-class RegisterUserForm(ModelForm):
+class UpdateUserForm(ModelForm):
     class Meta:
         model = NewUser
-        fields = ['email', 'first_name', 'password']
+        fields = ['email', 'first_name']

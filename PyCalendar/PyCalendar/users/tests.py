@@ -45,7 +45,7 @@ class UserAccountTests(TestCase):
         # Testing that the url post request works with valid data.
         url = reverse("users:Create_user")
 
-        data = {"email": "testuser@a.com", "password": "password"}
+        data = {"email": "testuser@a.com", "first_name": "test" ,"password": "password"}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
