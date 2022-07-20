@@ -3,11 +3,16 @@ from .models import NewUser
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(
+        max_length=100,
+        style={'input_type': 'password', 'placeholder': 'Password'}
+    )
 
     class Meta:
         model = NewUser
         fields = ('email', 'first_name' ,'password')
         extra_kwargs = {'password': {'write_only': True}}
+
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)
