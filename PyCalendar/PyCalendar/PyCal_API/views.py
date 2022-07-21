@@ -179,7 +179,7 @@ class CalendarQueryAPIView(APIView):
     )
     def get(self, request, *args, **kwargs):
         '''
-        Lists all calendar items who Name or Description match the queries.
+        Lists all calendar items where the Name or Description match the queries.
         '''
         user = self.request.user
         items = Calendar_API.objects.filter(Author=user)

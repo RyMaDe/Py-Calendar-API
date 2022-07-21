@@ -1,10 +1,11 @@
-from django.urls import URLPattern, path, include
+from django.urls import path, include
 from .views import (
     CalendarListAPIView,
     CalendarDetailApiView,
     CalendarSearchAPIView,
     CalendarQueryAPIView,
 )
+app_name = 'PyCalAPI'
 
 urlpatterns = [
     path('', CalendarListAPIView.as_view(), name="calendar"),
