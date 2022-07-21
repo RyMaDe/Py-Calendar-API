@@ -1,0 +1,13 @@
+<h3>User Settings</h3>
+
+<html><body>
+
+<h1>Update Profile - {{ user.email }}</h1>
+
+<form action="{% url 'users:Update_user' %}" method="post">
+    {% csrf_token %}
+    {{form}}
+    <input type="submit" value="Save">
+</form>
+
+</body></html>

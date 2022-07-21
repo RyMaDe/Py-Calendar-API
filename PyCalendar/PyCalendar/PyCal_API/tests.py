@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 
 
 class APIListTest(APITestCase):
-    calendar_items_url = reverse('calendar')
+    calendar_items_url = reverse('PyCalAPI:calendar')
     token_url = reverse("token_obtain_pair")
 
     def setUp(self):
@@ -136,13 +136,13 @@ class APIListTest(APITestCase):
 
         # Testing that the user must be authenticated to access an individual entry.
         pk = Calendar_API.objects.first().id
-        self.calendar_item_url = reverse('calendar-item', args = [pk])
+        self.calendar_item_url = reverse('PyCalAPI:calendar-item', args = [pk])
         response = Client.get(self.calendar_item_url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
 class APIDetailTest(APITestCase):
-    calendar_items_url = reverse('calendar')  # URL for all items
+    calendar_items_url = reverse('PyCalAPI:calendar')  # URL for all items
     token_url = reverse("token_obtain_pair")
 
     def setUp(self):
@@ -167,7 +167,7 @@ class APIDetailTest(APITestCase):
     def test_Get(self):
         # Testing that getting an item by id returns the correct data.
         pk = Calendar_API.objects.first().id
-        self.calendar_item_url = reverse('calendar-item', args = [pk])
+        self.calendar_item_url = reverse('PyCalAPI:calendar-item', args = [pk])
 
         response = self.client.get(self.calendar_item_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -200,13 +200,13 @@ class APIDetailTest(APITestCase):
 
         # Now checking if the new user can get the above (its own) calendar entry.
         pk = Calendar_API.objects.get(Name="Flight to Rome").id
-        self.calendar_item_url = reverse('calendar-item', args = [pk])
+        self.calendar_item_url = reverse('PyCalAPI:calendar-item', args = [pk])
         response = self.client.get(self.calendar_item_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Now checking if the new user can get the initial setUp calendar entry.
         pk = Calendar_API.objects.first().id
-        self.calendar_item_url = reverse('calendar-item', args = [pk])
+        self.calendar_item_url = reverse('PyCalAPI:calendar-item', args = [pk])
         response = self.client.get(self.calendar_item_url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -222,7 +222,7 @@ class APIDetailTest(APITestCase):
 
         # Getting the first id in the user and accessing the url for it.
         pk = Calendar_API.objects.first().id
-        self.calendar_item_url = reverse('calendar-item', args = [pk])
+        self.calendar_item_url = reverse('PyCalAPI:calendar-item', args = [pk])
 
         response = self.client.put(self.calendar_item_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -235,7 +235,7 @@ class APIDetailTest(APITestCase):
         self.assertEqual(response.data["Time"], "11:37:00")
 
         # Tests that if the calendar entry does not exist, an error is thrown.
-        self.calendar_item_url2 = reverse('calendar-item', args = [999999999999])
+        self.calendar_item_url2 = reverse('PyCalAPI:calendar-item', args = [999999999999])
 
         response = self.client.put(self.calendar_item_url2, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -264,7 +264,7 @@ class APIDetailTest(APITestCase):
 
         # Getting the first id in the user and accessing the url for it.
         pk = Calendar_API.objects.first().id
-        self.calendar_item_url = reverse('calendar-item', args = [pk])
+        self.calendar_item_url = reverse('PyCalAPI:calendar-item', args = [pk])
 
         data = {
             "Name": "Flight to Paris",
@@ -280,7 +280,7 @@ class APIDetailTest(APITestCase):
     def test_Delete_Item(self):
         # Getting the first id in the user and accessing the url for it.
         pk = Calendar_API.objects.first().id
-        self.calendar_item_url = reverse('calendar-item', args = [pk])
+        self.calendar_item_url = reverse('PyCalAPI:calendar-item', args = [pk])
 
         # Testing that deleting an item removes it fully.
         response = self.client.delete(self.calendar_item_url)
@@ -291,7 +291,7 @@ class APIDetailTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # Testing that if the calendar entry does not exist, an error is thrown.
-        self.calendar_item_url2 = reverse('calendar-item', args = [999999999999])
+        self.calendar_item_url2 = reverse('PyCalAPI:calendar-item', args = [999999999999])
 
         response = self.client.delete(self.calendar_item_url2, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -309,7 +309,7 @@ class APIDetailTest(APITestCase):
 
         # Getting the first id in the user and accessing the url for it.
         pk = Calendar_API.objects.first().id
-        self.calendar_item_url = reverse('calendar-item', args = [pk])
+        self.calendar_item_url = reverse('PyCalAPI:calendar-item', args = [pk])
 
         # Testing that delete will not work.
         response = self.client.delete(self.calendar_item_url)
@@ -317,7 +317,7 @@ class APIDetailTest(APITestCase):
 
 
 class APISearchTest(APITestCase):
-    calendar_items_url = reverse('calendar')
+    calendar_items_url = reverse('PyCalAPI:calendar')
     token_url = reverse("token_obtain_pair")
 
     def setUp(self):
@@ -369,7 +369,7 @@ class APISearchTest(APITestCase):
     def test_Get_Search(self):
         # Testing that the search will return the correct items by date range,
         # and for the correct user.
-        self.search_url = reverse("datesearch")
+        self.search_url = reverse("PyCalAPI:datesearch")
 
         # Making the first get request between two dates:
         response = self.client.get(self.search_url, data={"start_date": "2022-05-01",
@@ -416,7 +416,7 @@ class APISearchTest(APITestCase):
 
     def test_Get_Query(self):
         # Testing that search by query will return relevant results.
-        self.searchQuery_url = reverse("querysearch")
+        self.searchQuery_url = reverse("PyCalAPI:querysearch")
 
         # Making the first get request:
         response = self.client.get(self.searchQuery_url, data={"q": "Paris"}, format="json")
@@ -460,7 +460,7 @@ class APITokenTest(APITestCase):
         self.assertIn("access", new_access_token.data)
 
         # Testing that the access token received works by making a simple get request.
-        calendar_items_url = reverse('calendar')
+        calendar_items_url = reverse('PyCalAPI:calendar')
         self.client.credentials(HTTP_AUTHORIZATION="Bearer "+new_access_token.data["access"])
         response = self.client.get(calendar_items_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
