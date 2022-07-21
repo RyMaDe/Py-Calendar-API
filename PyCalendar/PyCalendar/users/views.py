@@ -17,9 +17,9 @@ from django.views import View
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from rest_framework.renderers import TemplateHTMLRenderer
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from .serializers import loginSerializer
-from .forms import UpdateUserForm
+from .forms import UpdateUserForm, UpdateUserPasswordForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 
@@ -111,6 +111,27 @@ class UpdateUserDetails(LoginRequiredMixin, View):
             newuser = form.save()
             if newuser:
                 return redirect(reverse("CalendarSite:calendarSite"))
+        return render(request, self.template_name, {"form":form})
+
+
+class UpdateUserPassword(LoginRequiredMixin, View):
+    login_url = reverse_lazy("users:Login_user")
+    redirect_field_name = None
+    template_name = "settings_password.html"
+
+    def get(self, request):
+        form = UpdateUserPasswordForm()
+        return render(request, self.template_name, {"form":form})
+
+    def post(self, request):
+        user = self.request.user
+        form = UpdateUserPasswordForm(request.POST, instance=user)
+        if form.is_valid():
+            newuser = form.save()
+            update_session_auth_hash(request, user)
+            if newuser:
+                return redirect(reverse("CalendarSite:calendarSite"))
+        form = UpdateUserPasswordForm()
         return render(request, self.template_name, {"form":form})
 
 
