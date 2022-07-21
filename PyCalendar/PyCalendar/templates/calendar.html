@@ -1,1 +1,14 @@
-<h3>Main Calendar Page</h3>
+<h1>Calendar</h3>
+
+<html><body>
+
+<div>
+    {% for item in items %}
+        <h3>{{ item.Name }}</h3>
+        <p>{{ item.Description }}</p>
+        <p>{{ item.Tag }}</p>
+        <p>{{ item.Date }} at {{ item.Time }}</p>
+    {% endfor %}
+</div>
+
+</body></html>
