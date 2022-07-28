@@ -1,14 +1,27 @@
+{% extends 'base.html' %}
+
 <h1>Calendar</h3>
 
-<html><body>
+<html>
 
-<div>
-    {% for item in items %}
-        <h3>{{ item.Name }}</h3>
-        <p>{{ item.Description }}</p>
-        <p>{{ item.Tag }}</p>
-        <p>{{ item.Date }} at {{ item.Time }}</p>
-    {% endfor %}
-</div>
+    <head>
+        <title>Calendar Page</title>
+    </head>
 
-</body></html>
+    <body>
+        <div>
+            {% for item in items %}
+                <h3>{{ item.Name }}</h3>
+                <p>{{ item.Description }}</p>
+                <p>{{ item.Tag }}</p>
+                <p>{{ item.Date }} at {{ item.Time }}</p>
+            {% endfor %}
+
+
+            {% block content %}
+            {{ calendar|safe }}
+            {% endblock %}
+
+        </div>
+    </body>
+</html>
