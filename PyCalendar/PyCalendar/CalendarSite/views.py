@@ -1,9 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.views import View
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from PyCalendar.PyCal_API.models import Calendar_API
 from .utils import Calendar
+from .forms import EventForm
 import datetime
 import calendar
 
@@ -49,3 +50,32 @@ def next_month(d):
     next_month = last + datetime.timedelta(days=1)
     month = 'date=' + str(next_month.year) + '-' + str(next_month.month)
     return month
+
+
+class CalendarEvent(LoginRequiredMixin, View):
+    login_url = reverse_lazy("users:Login_user")
+    redirect_field_name = None
+    template_name = "calendar_event.html"
+
+    def get(self, request, event_id=None):
+        try:
+            instance = get_object_or_404(Calendar_API, id=event_id)
+        except:
+            instance = Calendar_API()
+
+        form = EventForm(instance=instance)
+        return render(request, self.template_name, {"form": form})
+
+    def post(self, request, event_id=None):
+        try:
+            instance = get_object_or_404(Calendar_API, id=event_id)
+        except:
+            instance = Calendar_API()
+
+        instance.Author = self.request.user
+        form = EventForm(request.POST, instance=instance)
+        if form.is_valid():
+            item = form.save()
+            if item:
+                return redirect(reverse("CalendarSite:calendarSite"))
+        return render(request, self.template_name, {"form": form})

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+<html>
+
+    <head>
+        <title>Calendar Event Page</title>
+    </head>
+
+    <body>
+        <div>
+            {% block content %}
+                <h1>Calendar Event</h3>
+                <div class="clearfix">
+                    <a class="btn btn-info left" href="{% url 'CalendarSite:calendarSite' %}"><B>Calendar</B></a>
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <table class="form form-table">
+                        {{ form }}
+                        <tr><td colspan="2">
+                            <button type="submit" class="btn btn-info right">submit</button>
+                        </td></tr>
+                    </table>
+                </form>
+            {% endblock %}
+
+        </div>
+    </body>
+</html>
