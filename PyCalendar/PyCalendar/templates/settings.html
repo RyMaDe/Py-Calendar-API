@@ -4,10 +4,15 @@
 
 <h1>Update Profile - {{ user.email }}</h1>
 
+<a class="left" href="{% url 'CalendarSite:calendarSite' %}">Calendar</a>
+
 <form action="{% url 'users:Update_user' %}" method="post">
     {% csrf_token %}
     {{form}}
     <input type="submit" value="Save">
 </form>
+
+<br>
+<a href="{% url 'users:Update_password_user' %}">Update Password</a>
 
 </body></html>

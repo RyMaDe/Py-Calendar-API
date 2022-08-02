@@ -1,14 +1,30 @@
-<h1>Calendar</h3>
+{% extends 'base.html' %}
 
-<html><body>
+<html>
 
-<div>
-    {% for item in items %}
-        <h3>{{ item.Name }}</h3>
-        <p>{{ item.Description }}</p>
-        <p>{{ item.Tag }}</p>
-        <p>{{ item.Date }} at {{ item.Time }}</p>
-    {% endfor %}
-</div>
+    <head>
+        <title>Calendar Page</title>
+    </head>
 
-</body></html>
+    <body>
+        <div>
+
+            {% block content %}
+            <h1>Calendar</h1>
+
+            <a class="right" href="{% url 'users:Logout_user' %}"> Logout &nbsp;</a>
+            <a class="right" href="{% url 'users:Update_user' %}"> Settings &nbsp;</a>
+            <br>
+
+            <div class="clearfix">
+                <a class="btn btn-info left" href="{% url 'CalendarSite:calendarSite' %}?{{ prev_month }}"> Previous </a>
+                <a class="btn btn-info right" href="{% url 'CalendarSite:calendarSite' %}?{{ next_month }}"> Next </a>
+                <a class="btn btn-info right" href="{% url 'CalendarSite:calendarNew' %}"> New Event </a>
+            </div>
+            
+            {{ calendar|safe }}
+            {% endblock %}
+
+        </div>
+    </body>
+</html>

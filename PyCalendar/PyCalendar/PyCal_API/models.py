@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.urls import reverse
 
 
 class Calendar_API(models.Model):
@@ -19,3 +20,8 @@ class Calendar_API(models.Model):
 
     def __str__(self):
         return self.Name
+
+    @property
+    def get_html_url(self):
+        url = reverse("CalendarSite:calendarEdit", args=(self.id,))
+        return f'<a href="{url}"> {self.Name} </a>'
