@@ -63,6 +63,7 @@ class CalendarEvent(LoginRequiredMixin, View):
         except:
             instance = Calendar_API()
 
+        #exists = Calendar_API.objects.filter(id=event_id).exists()
         form = EventForm(instance=instance)
         return render(request, self.template_name, {"form": form})
 
@@ -79,3 +80,15 @@ class CalendarEvent(LoginRequiredMixin, View):
             if item:
                 return redirect(reverse("CalendarSite:calendarSite"))
         return render(request, self.template_name, {"form": form})
+
+
+class CalendarEventDelete(LoginRequiredMixin, View):
+    login_url = reverse_lazy("users:Login_user")
+    redirect_field_name = None
+
+    def get(self, request, event_id):
+        item = Calendar_API.objects.filter(Author=request.user, id=event_id)
+
+        if item.exists():
+            item.delete()
+        return redirect(reverse("CalendarSite:calendarSite"))

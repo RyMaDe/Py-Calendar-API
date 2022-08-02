@@ -21,7 +21,7 @@
                 <a class="btn btn-info right" href="{% url 'CalendarSite:calendarSite' %}?{{ next_month }}"> Next </a>
                 <a class="btn btn-info right" href="{% url 'CalendarSite:calendarNew' %}"> New Event </a>
             </div>
-            
+
             {{ calendar|safe }}
             {% endblock %}
 

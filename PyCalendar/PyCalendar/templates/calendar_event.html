@@ -23,6 +23,11 @@
                         </td></tr>
                     </table>
                 </form>
+
+                {% if form.instance.pk %}
+                    <a class="btn btn-info" href="{% url 'CalendarSite:calendarDelete' event_id=form.instance.pk %}">Delete</a>
+                {% endif %}
+                
             {% endblock %}
 
         </div>
