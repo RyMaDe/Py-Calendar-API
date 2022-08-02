@@ -16,6 +16,6 @@ Currently you can perform the following operations through the API:
 On the website you can:
 - Register, login, logout, update user details, update user password
 - View all of your calendar entries
-- Create and edit calendat entries
+- Create and edit calendar entries
 
 There is also documentation for the api available through swagger.
