@@ -9,7 +9,7 @@
     <body>
         <div>
             {% block content %}
-                <h1>Calendar Event</h3>
+                <h1 class="title">Calendar Event</h3>
                 <div class="clearfix">
                     <a class="btn btn-info left" href="{% url 'CalendarSite:calendarSite' %}"><B>Calendar</B></a>
                 </div>
@@ -24,10 +24,12 @@
                     </table>
                 </form>
 
-                {% if form.instance.pk %}
-                    <a class="btn btn-info" href="{% url 'CalendarSite:calendarDelete' event_id=form.instance.pk %}">Delete</a>
-                {% endif %}
-                
+                <div class="clearfix">
+                    {% if form.instance.pk %}
+                        <a class="btn btn-info" href="{% url 'CalendarSite:calendarDelete' event_id=form.instance.pk %}">Delete</a>
+                    {% endif %}
+                </div>
+
             {% endblock %}
 
         </div>

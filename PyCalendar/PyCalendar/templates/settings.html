@@ -1,18 +1,28 @@
-<h3>User Settings</h3>
+{% extends 'base.html' %}
+
+
 
 <html><body>
+    {% block content %}
+    <h1 class="title">User Settings</h1>
 
-<h1>Update Profile - {{ user.email }}</h1>
+    <div class="clearfix">
+        <a class="btn btn-info left" href="{% url 'CalendarSite:calendarSite' %}">Calendar</a>
+    </div>
 
-<a class="left" href="{% url 'CalendarSite:calendarSite' %}">Calendar</a>
+    <div class="clearfix">
+        <h3>Update Profile - {{ user.email }}</h3>
+    </div>
+    <br>
 
-<form action="{% url 'users:Update_user' %}" method="post">
-    {% csrf_token %}
-    {{form}}
-    <input type="submit" value="Save">
-</form>
+    <form class="clearfix" action="{% url 'users:Update_user' %}" method="post">
+        {% csrf_token %}
+        {{form}}
+        <input class="btn btn-info" type="submit" value="Save">
+    </form>
 
-<br>
-<a href="{% url 'users:Update_password_user' %}">Update Password</a>
-
+    <div class="clearfix">
+        <a class="btn btn-info" href="{% url 'users:Update_password_user' %}">Update Password</a>
+    </div>
+    {% endblock %}
 </body></html>

@@ -50,6 +50,7 @@ a {
     color: black;
     background-color: transparent;
     box-shadow: 0 0 0 0;
+    margin-left: 5px;
 }
 
 .clearfix {
@@ -67,4 +68,9 @@ a {
     background: none;
     padding: 5px;
     width: 100%;
+}
+
+.title {
+    text-align: center;
+    margin: 10px;
 }
