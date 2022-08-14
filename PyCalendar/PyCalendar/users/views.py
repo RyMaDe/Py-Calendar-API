@@ -135,6 +135,20 @@ class UpdateUserPassword(LoginRequiredMixin, View):
         return render(request, self.template_name, {"form":form})
 
 
+class DeleteUser(LoginRequiredMixin, View):
+    login_url = reverse_lazy("users:Login_user")
+    redirect_field_name = None
+    template_name = "settings_delete.html"
+
+    def get(self, request):
+        return render(request, self.template_name)
+    
+    def post(self, request):
+        user = self.request.user
+        user.delete()
+        return redirect(reverse("users:Login_user"))
+
+
 # The below classes have been added for the drf-yasg integration with SimpleJWT
 # so that the info pulls through correctly in the schema/documentation.
 class TokenObtainPairResponseSerializer(serializers.Serializer):

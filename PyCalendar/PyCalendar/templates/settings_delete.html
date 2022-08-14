@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+<html><body>
+    {% block content %}
+
+    <div class="clearfix">
+        <a class="btn btn-info left" href="{% url 'CalendarSite:calendarSite' %}">Calendar</a>
+        <a class="btn btn-info left" href="{% url 'users:Update_user' %}">Settings</a>
+    </div>
+    <br>
+
+    <form action="{% url 'users:Delete_user' %}" method="post">
+        {% csrf_token %}
+        <p class="clearfix">Are you sure you want to delete this account?</p>
+        <input class="btn btn-info btn-danger" type="submit" value="Delete">
+    </form>
+
+    {% endblock %}
+</body></html>

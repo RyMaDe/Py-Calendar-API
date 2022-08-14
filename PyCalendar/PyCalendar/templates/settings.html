@@ -22,6 +22,7 @@
     </form>
 
     <div class="clearfix">
+        <a class="btn btn-info btn-danger" href="{% url 'users:Delete_user' %}">Delete User</a>
         <a class="btn btn-info" href="{% url 'users:Update_password_user' %}">Update Password</a>
     </div>
     {% endblock %}
