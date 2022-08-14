@@ -14,7 +14,7 @@ Currently you can perform the following operations through the API:
 - Login via token authentication
 
 On the website you can:
-- Register, login, logout, update user details, update user password
+- Register, login, logout, update user details, update user password, delete user
 - View all of your calendar entries
 - Create, edit and delete calendar entries
 
